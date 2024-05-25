@@ -1,0 +1,27 @@
+services:
+  database:
+    image: mysql:latest
+    restart: always
+    container_name: bdd-student
+    environment:
+      MYSQL_DATABASE: studentdb
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_PASSWORD: root
+    ports:
+      - '3306:3306'
+    volumes:
+      - database_student:/var/lib/mysql
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: phpmyadmin-student
+    restart: always
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: database
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_PASSWORD: root
+
+volumes:
+  database_student:
