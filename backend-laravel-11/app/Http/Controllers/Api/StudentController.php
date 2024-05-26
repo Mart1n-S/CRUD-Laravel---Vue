@@ -46,24 +46,99 @@ class StudentController extends Controller
                 'errors' => $validator->messages()
             ], 422);
         } else {
-            $student = Student::create([
-                'firstname' => $request->firstname,
-                'lastname' => $request->lastname,
-                'email' => $request->email,
-                'phoneNumber' => $request->phoneNumber,
-            ]);
-
-            if ($student) {
+            try {
+                Student::create([
+                    'firstname' => $request->firstname,
+                    'lastname' => $request->lastname,
+                    'email' => $request->email,
+                    'phoneNumber' => $request->phoneNumber,
+                ]);
+    
                 return response()->json([
                     'status' => 200,
-                    'message' => 'Student created Successfully'
+                    'message' => 'Étudiant créé avec succès'
                 ], 200);
-            }else {
+            } catch (\Exception $e) {
                 return response()->json([
                     'status' => 500,
-                    'message' => 'Something Went Wrong!'
+                    'message' => 'Une erreur s\'est produite!'
                 ], 500);
             }
         }
     }
+
+    public function show(int $id)
+    {
+        try {
+            $student = Student::findOrFail($id);
+    
+            // Si l'étudiant est trouvé, retourner les détails de l'étudiant
+            return response()->json([
+                'status' => 200,
+                'student' => $student
+            ], 200);
+        } catch (\Exception $e) {
+            // En cas d'exception, retourner une réponse d'erreur
+            return response()->json([
+                'status' => 404,
+                'message' => 'Étudiant non trouvé'
+            ], 404);
+        }
+    }
+
+    public function update(Request $request, int $id)
+    {
+        try {
+            // Nettoyer le numéro de téléphone
+            $cleanPhoneNumber = str_replace(['+33 ', ' '], ['0', ''], $request->phoneNumber);
+
+            // Mettre à jour la requête avec le numéro de téléphone nettoyé
+            $request->merge(['phoneNumber' => $cleanPhoneNumber]);
+
+            // Valider les données
+            $validator = Validator::make($request->all(), [
+                'firstname' => 'required|string|max:30',
+                'lastname' => 'required|string|max:30',
+                'email' => 'required|email|max:180',
+                'phoneNumber' => 'required|digits:10',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => 422,
+                    'errors' => $validator->messages()
+                ], 422);
+            } else {
+                // Trouver l'étudiant
+                $student = Student::find($id);
+
+                if ($student) {
+                    // Mettre à jour l'étudiant avec les données validées
+                    $student->update([
+                        'firstname' => $request->firstname,
+                        'lastname' => $request->lastname,
+                        'email' => $request->email,
+                        'phoneNumber' => $request->phoneNumber,
+                    ]);
+
+                    return response()->json([
+                        'status' => 200,
+                        'message' => 'Étudiant mis à jour avec succès'
+                    ], 200);
+                } else {
+                    return response()->json([
+                        'status' => 404,
+                        'message' => 'Étudiant non trouvé'
+                    ], 404);
+                }
+            }
+        } catch (\Exception $e) {
+            // En cas d'exception, retourner une réponse d'erreur
+            return response()->json([
+                'status' => 500,
+                'message' => 'Une erreur s\'est produite lors de la mise à jour de l\'étudiant'
+            ], 500);
+        }
+    }
+
 }
