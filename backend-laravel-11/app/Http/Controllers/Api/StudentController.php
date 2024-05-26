@@ -141,4 +141,33 @@ class StudentController extends Controller
         }
     }
 
+    public function delete(int $id)
+    {
+        try {
+            // Trouver l'étudiant
+            $student = Student::find($id);
+
+            if ($student) {
+                // Mettre à jour l'étudiant avec les données validées
+                $student->delete();
+
+                return response()->json([
+                    'status' => 200,
+                    'message' => 'Étudiant supprimé avec succès'
+                ], 200);
+            }else{
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'Étudiant non trouvé'
+                ], 404);
+            }
+        } catch (\Exception $e) {
+            // En cas d'exception, retourner une réponse d'erreur
+            return response()->json([
+                'status' => 500,
+                'message' => 'Une erreur s\'est produite lors de la suppression de l\'étudiant'
+            ], 500);
+        }
+    }
+
 }
